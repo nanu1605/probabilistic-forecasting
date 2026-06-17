@@ -1,0 +1,40 @@
+# Data (DVC-tracked)
+data/raw/
+data/processed/
+data/splits/
+
+# DVC
+.dvc/cache
+.dvc/tmp
+
+# Experiment tracking
+mlruns/
+mlflow.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Generated artifacts (kept reproducible, not committed except final figures)
+*.parquet

@@ -1,0 +1,50 @@
+[project]
+name = "probforecast"
+version = "0.1.0"
+description = "Probabilistic time-series forecasting with calibrated uncertainty (DeepAR + post-hoc recalibration)"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+authors = [{ name = "Tanishq Jain", email = "tanishqjain010@gmail.com" }]
+
+dependencies = [
+    "numpy>=1.26,<2.2",
+    "pandas>=2.1",
+    "pyarrow>=15.0",
+    "scipy>=1.11",
+    "scikit-learn>=1.4",
+    "statsmodels>=0.14",
+    "pmdarima>=2.0.4",
+    "gluonts[torch]>=0.15",
+    "properscoring>=0.1",
+    "pandera>=0.18",
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "pyyaml>=6.0",
+    "structlog>=24.1",
+    "mlflow>=2.9",
+    "dvc>=3.40",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "jupyter>=1.0",
+    "nbconvert>=7.0",
+    "papermill>=2.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/probforecast"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]

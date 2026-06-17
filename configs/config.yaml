@@ -1,0 +1,39 @@
+# Core project configuration. No hardcoded paths/horizons/thresholds elsewhere.
+
+data:
+  station: "Aotizhongxin"          # single station for core experiments
+  target: "PM2.5"
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  splits_dir: "data/splits"
+  uci_url: "https://archive.ics.uci.edu/static/public/501/beijing+multi+site+air+quality+data.zip"
+  use_synthetic_fallback: true
+  ffill_max_gap_hours: 6           # forward-fill gaps <= this; longer -> NaN, excluded
+
+  # Strict temporal split (no leakage). Asserted in tests.
+  split:
+    train_start: "2013-03-01"
+    train_end: "2016-06-30"
+    val_start: "2016-07-01"
+    val_end: "2016-12-31"
+    test_start: "2017-01-01"
+    test_end: "2017-02-28"
+
+forecast:
+  context_length: 168             # 1 week of hourly history
+  prediction_length: 24           # next day
+  num_samples: 100                # sample paths for probabilistic eval
+  quantile_levels: [0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95]
+
+evaluation:
+  coverage_levels: [0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90]
+  horizon_checkpoints: [1, 6, 12, 24]   # per-horizon calibration
+
+reproducibility:
+  seeds: [42, 123, 456, 789, 1337]
+
+paths:
+  metrics_dir: "metrics"
+  images_dir: "docs/images"
+  mlflow_tracking_uri: "file:./mlruns"
+  mlflow_experiment: "probforecast"

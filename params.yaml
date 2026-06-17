@@ -1,0 +1,17 @@
+# DVC params (mirrors configs/). DVC stages read from here for change tracking.
+data:
+  station: "Aotizhongxin"
+  target: "PM2.5"
+  ffill_max_gap_hours: 6
+  split:
+    train_start: "2013-03-01"
+    train_end: "2016-06-30"
+    val_start: "2016-07-01"
+    val_end: "2016-12-31"
+    test_start: "2017-01-01"
+    test_end: "2017-02-28"
+
+forecast:
+  context_length: 168
+  prediction_length: 24
+  num_samples: 100

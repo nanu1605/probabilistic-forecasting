@@ -1,0 +1,33 @@
+# Model hyperparameters. Pinned per spec §3/§7/Phase 3.
+
+deepar:
+  context_length: 168
+  prediction_length: 24
+  hidden_size: 40
+  num_layers: 2
+  dropout_rate: 0.1
+  lr: 0.001
+  epochs: 50                 # reduce to 10 if CPU-only and slow (document in CHANGELOG)
+  epochs_cpu_fallback: 10
+  batch_size: 32
+  num_batches_per_epoch: 50
+  distr_output: "StudentT"   # heavier tails than Gaussian -> better for air quality
+  num_eval_samples: 100
+
+arima:
+  seasonal: true
+  m: 24                      # hourly seasonality
+  max_train_weeks: 4         # if auto_arima too slow, fit on last N weeks (document)
+  fallback_order: [2, 1, 2]
+  fallback_seasonal_order: [1, 1, 1, 24]
+
+ets:
+  trend: "add"
+  seasonal: "add"
+  seasonal_periods: 24
+
+seasonal_naive:
+  season_length: 24
+
+recalibration:
+  method: "isotonic"         # isotonic | quantile_scaling (fallback)
