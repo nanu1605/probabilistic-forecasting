@@ -35,5 +35,5 @@ reproducibility:
 paths:
   metrics_dir: "metrics"
   images_dir: "docs/images"
-  mlflow_tracking_uri: "file:./mlruns"
+  mlflow_tracking_uri: "sqlite:///mlflow.db"  # MLflow 3.x dropped the file store
   mlflow_experiment: "probforecast"

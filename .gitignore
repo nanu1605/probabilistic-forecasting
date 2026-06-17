@@ -38,3 +38,4 @@ coverage.xml
 
 # Generated artifacts (kept reproducible, not committed except final figures)
 *.parquet
+metrics/*.npz

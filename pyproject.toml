@@ -47,4 +47,5 @@ packages = ["src/probforecast"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = ["slow: slower tests (model fitting); deselect with -m 'not slow'"]
 filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]
