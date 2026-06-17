@@ -26,6 +26,35 @@ class RollingResult:
     n_dropped: int
 
 
+def collect_windows(
+    train_df: pd.DataFrame, test_df: pd.DataFrame, horizon: int
+) -> tuple[list[np.ndarray], np.ndarray, int]:
+    """Return (histories, actuals, n_dropped) for the non-overlapping test windows.
+
+    ``histories[k]`` is every target value strictly before window k's origin; ``actuals`` is
+    ``(n_valid_windows, horizon)``. Same origins as :func:`rolling_forecast` — so a model can
+    batch-predict all windows at once and still match the shared protocol exactly.
+    """
+    train_y = train_df[TARGET].to_numpy(dtype=float)
+    test_y = test_df[TARGET].to_numpy(dtype=float)
+    full = np.concatenate([train_y, test_y])
+    train_len = len(train_y)
+    n_test = len(test_y)
+
+    histories: list[np.ndarray] = []
+    actuals_list: list[np.ndarray] = []
+    n_dropped = 0
+    for k in range(n_test // horizon):
+        origin = train_len + k * horizon
+        actual = full[origin : origin + horizon]
+        if actual.shape[0] < horizon or not np.all(np.isfinite(actual)):
+            n_dropped += 1
+            continue
+        histories.append(full[:origin])
+        actuals_list.append(actual)
+    return histories, np.stack(actuals_list), n_dropped
+
+
 def rolling_forecast(
     model: BaseForecaster,
     train_df: pd.DataFrame,

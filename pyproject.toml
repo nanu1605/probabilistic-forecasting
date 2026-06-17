@@ -48,4 +48,8 @@ packages = ["src/probforecast"]
 testpaths = ["tests"]
 addopts = "-q"
 markers = ["slow: slower tests (model fitting); deselect with -m 'not slow'"]
-filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::FutureWarning",
+    "ignore:Using a non-tuple sequence:UserWarning",
+]

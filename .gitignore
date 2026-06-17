@@ -39,3 +39,7 @@ coverage.xml
 # Generated artifacts (kept reproducible, not committed except final figures)
 *.parquet
 metrics/*.npz
+
+# Lightning checkpoints
+checkpoints/
+lightning_logs/
