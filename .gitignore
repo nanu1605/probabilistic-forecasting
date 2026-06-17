@@ -43,3 +43,7 @@ metrics/*.npz
 # Lightning checkpoints
 checkpoints/
 lightning_logs/
+
+# Generated report renders
+report/report.html
+report/report.pdf

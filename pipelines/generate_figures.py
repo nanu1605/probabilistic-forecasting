@@ -18,6 +18,7 @@ from probforecast.evaluation.calibration import (
     compute_per_horizon_calibration,
 )
 from probforecast.evaluation.metrics import compute_ece
+from probforecast.plotting.architecture import plot_architecture
 from probforecast.plotting.calibration import (
     plot_calibration_comparison,
     plot_calibration_curve,
@@ -34,6 +35,10 @@ def main(cfg=None) -> None:
     md = Path(cfg.paths.metrics_dir)
     images = Path(cfg.paths.images_dir)
     levels = cfg.evaluation.coverage_levels
+
+    # Architecture diagram (no data dependency).
+    plot_architecture(images / "architecture.png")
+    log.info("figures.architecture_done")
 
     # Baseline forecast windows.
     bpath = md / "baselines_forecasts.npz"

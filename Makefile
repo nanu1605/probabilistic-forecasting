@@ -41,8 +41,10 @@ recalibrate:  ## fit recalibration on val, evaluate on test
 figures:  ## regenerate all plots from saved predictions/metrics
 	$(RUN) python pipelines/generate_figures.py
 
-report:  ## (optional) pandoc report.md -> report.pdf
-	pandoc report/report.md -o report/report.pdf || echo "pandoc unavailable; markdown-only report"
+report:  ## render report.md -> PDF (if a LaTeX engine exists) else self-contained HTML
+	pandoc report/report.md -o report/report.pdf 2>/dev/null && echo "report.pdf built" || \
+	pandoc report/report.md -o report/report.html --standalone --embed-resources && echo "report.html built (no LaTeX engine; HTML fallback)" || \
+	echo "pandoc unavailable; markdown-only report"
 
 reproduce: data eda baselines deepar calibration recalibrate figures  ## full end-to-end run
 
