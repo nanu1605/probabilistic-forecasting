@@ -1,0 +1,77 @@
+schema: '2.0'
+stages:
+  download:
+    cmd: python -m probforecast.data.download
+    deps:
+    - path: src/probforecast/data/download.py
+      hash: md5
+      md5: 35238c1a5d73b4a3aec13159265b834c
+      size: 3874
+    - path: src/probforecast/data/synthetic.py
+      hash: md5
+      md5: b819fd17e45464e2908d412517aa8e6a
+      size: 3499
+    params:
+      params.yaml:
+        data.station: Aotizhongxin
+    outs:
+    - path: data/raw/PRSA_Data_Aotizhongxin.csv
+      hash: md5
+      md5: 3027d2add13acfc8d79c2907d4c638c8
+      size: 3155193
+  preprocess:
+    cmd: python -m probforecast.data.preprocess
+    deps:
+    - path: data/raw/PRSA_Data_Aotizhongxin.csv
+      hash: md5
+      md5: 3027d2add13acfc8d79c2907d4c638c8
+      size: 3155193
+    - path: src/probforecast/data/preprocess.py
+      hash: md5
+      md5: 42f877bd67f4cbbe7007238a19c17418
+      size: 4545
+    - path: src/probforecast/data/schema.py
+      hash: md5
+      md5: 5aafdfceadec5ccf56a15f2a54dee289
+      size: 3088
+    params:
+      params.yaml:
+        data.ffill_max_gap_hours: 6
+        data.station: Aotizhongxin
+    outs:
+    - path: data/processed/Aotizhongxin.parquet
+      hash: md5
+      md5: 2021b5c85bb99bfae886ddba80e5563d
+      size: 1624756
+  split:
+    cmd: python -m probforecast.data.split
+    deps:
+    - path: data/processed/Aotizhongxin.parquet
+      hash: md5
+      md5: 2021b5c85bb99bfae886ddba80e5563d
+      size: 1624756
+    - path: src/probforecast/data/split.py
+      hash: md5
+      md5: ac0c674a122f6f18cb23a8755135888b
+      size: 2608
+    params:
+      params.yaml:
+        data.split.test_end: '2017-02-28'
+        data.split.test_start: '2017-01-01'
+        data.split.train_end: '2016-06-30'
+        data.split.train_start: '2013-03-01'
+        data.split.val_end: '2016-12-31'
+        data.split.val_start: '2016-07-01'
+    outs:
+    - path: data/splits/test.parquet
+      hash: md5
+      md5: 240e9133f8d391376c8886aedad35983
+      size: 96140
+    - path: data/splits/train.parquet
+      hash: md5
+      md5: e7b49642970c9f245826833ceded229d
+      size: 1358855
+    - path: data/splits/val.parquet
+      hash: md5
+      md5: d84ac088298b90d694e5b539865aa70f
+      size: 228949

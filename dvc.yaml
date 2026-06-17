@@ -1,0 +1,39 @@
+stages:
+  download:
+    cmd: python -m probforecast.data.download
+    deps:
+      - src/probforecast/data/download.py
+      - src/probforecast/data/synthetic.py
+    params:
+      - data.station
+    outs:
+      - data/raw/PRSA_Data_Aotizhongxin.csv
+
+  preprocess:
+    cmd: python -m probforecast.data.preprocess
+    deps:
+      - data/raw/PRSA_Data_Aotizhongxin.csv
+      - src/probforecast/data/preprocess.py
+      - src/probforecast/data/schema.py
+    params:
+      - data.station
+      - data.ffill_max_gap_hours
+    outs:
+      - data/processed/Aotizhongxin.parquet
+
+  split:
+    cmd: python -m probforecast.data.split
+    deps:
+      - data/processed/Aotizhongxin.parquet
+      - src/probforecast/data/split.py
+    params:
+      - data.split.train_start
+      - data.split.train_end
+      - data.split.val_start
+      - data.split.val_end
+      - data.split.test_start
+      - data.split.test_end
+    outs:
+      - data/splits/train.parquet
+      - data/splits/val.parquet
+      - data/splits/test.parquet
