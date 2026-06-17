@@ -15,3 +15,5 @@ All notable changes to this project, one line per phase. Format loosely follows
   - **DeepAR is the best model: CRPS 43.6 ± 1.7** (vs naive 68.4, arima 47.4, ets 47.5). MAE 59.7, RMSE 99.5.
   - **But miscalibrated / overconfident**: coverage@50/80/90 = 0.36/0.62/0.74 (all below nominal), ECE 0.125 — intervals too narrow. This is the diagnosis Phase 4 visualizes and Phase 5 recalibration fixes.
   - Batched per-seed predict (one multi-series predict call over 59 window-contexts) replaced per-window predict → ~50x faster eval. GPU determinism test pinned to CPU. ~6 min/seed training on RTX 5060 Ti.
+- Phase 4: calibration analysis (diagnosis) — calibration.py (curve data, per-horizon, ECE; reuses metrics engine) + plotting/calibration.py (curve, comparison money-shot, per-horizon grid). Post-processes saved DeepAR forecasts (no retrain). 45 tests pass.
+  - **Diagnosis:** DeepAR under-covers at every level (0.9→0.80, 0.5→0.39, …) → consistent overconfidence, ECE 0.087 (best seed). Per-horizon ECE worsens monotonically: h+1 0.03 → h+6 0.06 → h+12 0.12 → h+24 0.17 — miscalibration grows with horizon. Plots: calibration_before.png, calibration_per_horizon.png.
