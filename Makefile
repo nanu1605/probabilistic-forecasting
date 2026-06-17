@@ -44,7 +44,7 @@ figures:  ## regenerate all plots from saved predictions/metrics
 report:  ## (optional) pandoc report.md -> report.pdf
 	pandoc report/report.md -o report/report.pdf || echo "pandoc unavailable; markdown-only report"
 
-reproduce: data baselines deepar calibration recalibrate figures  ## full end-to-end run
+reproduce: data eda baselines deepar calibration recalibrate figures  ## full end-to-end run
 
 clean:  ## remove generated artifacts (not raw data)
 	rm -rf metrics/*.json docs/images/*.png mlruns

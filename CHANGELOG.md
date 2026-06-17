@@ -5,6 +5,9 @@ All notable changes to this project, one line per phase. Format loosely follows
 
 ## [Unreleased]
 
+- Phase 7: report + README + polish — `report/report.md` (3018 words, 9 sections + conclusion, 6 references), portfolio `README.md` (comparison plot first, results table, quickstart, design decisions, limitations), `docs/architecture.md`. Implemented `pipelines/generate_figures.py` (regenerate all plots from saved npz/json) + `plotting/horizon.py` (performance-vs-horizon). Added `eda` to the `reproduce` target.
+  - **Full clean `make reproduce` verified end-to-end** (data→eda→baselines→deepar→calibration→recalibrate→figures): reproduced numbers identical to the report (DeepAR CRPS 43.62±1.75, cov@90 0.74, ECE 0.125; recalibration test ECE 0.090→0.098, val 0.014, oracle 0.020). `make lint` clean; `make test` 50 passed. Project complete.
+
 - Phase 0: project scaffold — pyproject (Python 3.12), ruff, pydantic-settings config, module tree, Makefile, DVC init, test framework (6 tests pass).
   - GPU verified: RTX 5060 Ti (Blackwell sm_120) runs torch 2.12.0+cu130; GPU matmul confirmed → DeepAR will train on GPU at full 50 epochs (no CPU fallback needed).
 - Phase 1: data pipeline + EDA — download (UCI #501 → synthetic fallback), preprocess (continuous hourly index, gap-aware imputation, backward-only features), strict temporal split, pandera schema, DVC pipeline (download→preprocess→split), EDA notebook (5 plots). 22 tests pass.
