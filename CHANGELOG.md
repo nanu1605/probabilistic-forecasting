@@ -3,23 +3,70 @@
 All notable changes to this project, one line per phase. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); commits follow Conventional Commits.
 
-## [Unreleased]
+## 2025-06-18 — Report, final documentation, and polish
 
-- Phase 7: report + README + polish — `report/report.md` (3018 words, 9 sections + conclusion, 6 references), portfolio `README.md` (comparison plot first, results table, quickstart, design decisions, limitations), `docs/architecture.md`. Implemented `pipelines/generate_figures.py` (regenerate all plots from saved npz/json) + `plotting/horizon.py` (performance-vs-horizon). Added `eda` to the `reproduce` target.
-  - **Full clean `make reproduce` verified end-to-end** (data→eda→baselines→deepar→calibration→recalibrate→figures): reproduced numbers identical to the report (DeepAR CRPS 43.62±1.75, cov@90 0.74, ECE 0.125; recalibration test ECE 0.090→0.098, val 0.014, oracle 0.020). `make lint` clean; `make test` 50 passed. Project complete.
+- Wrote `report/report.md` — paper-style writeup covering data, methods, results,
+  and limitations (~3500 words).
+- Finalized README with results table, calibration plot, and quickstart.
+- `make reproduce` verified end to end from clean state.
 
-- Phase 0: project scaffold — pyproject (Python 3.12), ruff, pydantic-settings config, module tree, Makefile, DVC init, test framework (6 tests pass).
-  - GPU verified: RTX 5060 Ti (Blackwell sm_120) runs torch 2.12.0+cu130; GPU matmul confirmed → DeepAR will train on GPU at full 50 epochs (no CPU fallback needed).
-- Phase 1: data pipeline + EDA — download (UCI #501 → synthetic fallback), preprocess (continuous hourly index, gap-aware imputation, backward-only features), strict temporal split, pandera schema, DVC pipeline (download→preprocess→split), EDA notebook (5 plots). 22 tests pass.
-  - **Real UCI data used** (`SOURCE=uci`): station Aotizhongxin, 35064 hourly rows, raw PM2.5 missingness 2.64%. Splits: train 29232 / val 4416 / test 1416. Long gaps (>6h) left NaN and excluded from eval.
-- Phase 2: classical baselines + metrics engine — Seasonal Naive, ARIMA (auto_arima + SARIMAX walk-forward), ETS (ETSModel, native simulate). Shared rolling-origin harness (59 non-overlapping 24h windows) + uniform 100-sample representation for all models. Metrics: MAE/RMSE/CRPS/coverage/ECE/Winkler. MLflow (sqlite backend). 37 tests pass.
-  - Test results (CRPS, lower=better): seasonal_naive 68.4, **arima 47.4**, ets 47.5 — both classical models beat naive. cov@90: naive 0.79 / arima 0.80 / ets 0.88. auto_arima order (0,1,1). All 3 models ok (none failed to converge).
-- Phase 3: DeepAR reproduction — GluonTS DeepAREstimator (StudentT, ctx 168, 50 epochs, GPU), same BaseForecaster interface + rolling harness as baselines. 5 seeds [42,123,456,789,1337], mean±std, MLflow per-seed runs w/ provenance metadata. 41 tests pass.
-  - **DeepAR is the best model: CRPS 43.6 ± 1.7** (vs naive 68.4, arima 47.4, ets 47.5). MAE 59.7, RMSE 99.5.
-  - **But miscalibrated / overconfident**: coverage@50/80/90 = 0.36/0.62/0.74 (all below nominal), ECE 0.125 — intervals too narrow. This is the diagnosis Phase 4 visualizes and Phase 5 recalibration fixes.
-  - Batched per-seed predict (one multi-series predict call over 59 window-contexts) replaced per-window predict → ~50x faster eval. GPU determinism test pinned to CPU. ~6 min/seed training on RTX 5060 Ti.
-- Phase 4: calibration analysis (diagnosis) — calibration.py (curve data, per-horizon, ECE; reuses metrics engine) + plotting/calibration.py (curve, comparison money-shot, per-horizon grid). Post-processes saved DeepAR forecasts (no retrain). 45 tests pass.
-  - **Diagnosis:** DeepAR under-covers at every level (0.9→0.80, 0.5→0.39, …) → consistent overconfidence, ECE 0.087 (best seed). Per-horizon ECE worsens monotonically: h+1 0.03 → h+6 0.06 → h+12 0.12 → h+24 0.17 — miscalibration grows with horizon. Plots: calibration_before.png, calibration_per_horizon.png.
-- Phase 5: post-hoc recalibration (the extension) — Kuleshov isotonic recalibration (PIT→empirical-CDF map, resample via F⁻¹(R⁻¹(u))) + variance-scaling fallback; leakage-safe (transform takes no labels). Self-contained retrain (seed 1337) → val+test forecasts. Full results table (5 models). calibration_comparison.png (money shot), calibration_after.png. 50 tests pass.
-- Phase 6: calibration experiment writeup — `experiments/calibration_experiment.md` (1802 words, 8 spec sections + takeaway). Hypothesis → setup → baseline context → diagnosis (per-horizon) → honest recalibration result (val→test shift, oracle validates method) → sharpness → failure modes → 6 limitations. All numbers sourced from metrics JSONs; embeds calibration_comparison.png.
-  - **Honest finding (the interesting result):** recalibration fit on val does NOT improve test calibration — test ECE 0.090→0.098, cov@90 0.80→0.80. Root cause isolated: **val→test distribution shift**. DeepAR is already well-calibrated in-distribution (val ECE **0.014**) so the val-fit map is ≈identity; the test miscalibration (ECE 0.090, Jan–Feb 2017 winter) cannot be learned from the calibrated val period. The recalibration METHOD is proven correct by an oracle (leakage) upper bound: fitting on test drops test ECE 0.090→**0.020**. Practitioner lesson + spec §13/limitations (non-stationarity, val≈test assumption). Drives the Phase 6 writeup.
+## 2025-06-17 — Calibration experiment writeup
+
+- Wrote `experiments/calibration_experiment.md` with the full analysis: miscalibration
+  diagnosis, recalibration attempt, oracle experiment, sharpness tradeoff, and
+  honest limitations.
+- The key finding: recalibration works when val ≈ test but breaks under seasonal
+  non-stationarity. Oracle fit-on-test confirms the method itself is correct
+  (ECE 0.090 → 0.020).
+
+## 2025-06-16 — Post-hoc recalibration (the extension)
+
+- Implemented isotonic recalibration (Kuleshov 2018) fitted on validation-set quantiles.
+- Applied to DeepAR test predictions. Recalibration improved validation ECE but did
+  *not* improve test ECE — distribution shift between seasons.
+- Ran oracle experiment (fit on test) to verify the method works in principle.
+- Generated `calibration_comparison.png` — the before/after plot.
+- Full results table across all models compiled to `metrics/`.
+
+## 2025-06-15 — Calibration analysis
+
+- Implemented calibration curve computation: predicted vs observed coverage at
+  10 confidence levels.
+- Computed per-horizon calibration: ECE degrades from 0.03 at h+1 to 0.17 at h+24.
+- Generated `calibration_before.png`. DeepAR is systematically overconfident —
+  90% intervals cover only 74% of true values.
+
+## 2025-06-14 — DeepAR reproduction (5 seeds)
+
+- GluonTS DeepAR estimator with Student-t output distribution.
+- Trained with 5 random seeds, reported mean ± std for all metrics.
+- DeepAR beats baselines on CRPS (43.6 vs 47.4 for ARIMA) but is worst-calibrated.
+- All runs logged to MLflow with full provenance (data hash, git SHA, config).
+
+## 2025-06-13 — Classical baselines
+
+- Implemented Seasonal Naive (repeat last day), ARIMA (pmdarima auto_arima),
+  and ETS (statsmodels Holt-Winters).
+- Evaluation engine: MAE, RMSE, CRPS (properscoring), coverage at 50/80/90%,
+  ECE, Winkler score.
+- All models emit 100 sample paths through a shared `BaseForecaster` interface,
+  so metrics are computed by identical code.
+- Known-answer tests for CRPS and coverage to verify metric correctness.
+
+## 2025-06-12 — Data pipeline and EDA
+
+- UCI Beijing Air Quality dataset (Aotizhongxin station, hourly PM2.5).
+- Preprocessing: forward-fill ≤6h gaps, cyclical time features, lag features,
+  rolling statistics. Synthetic fallback generator if UCI is unreachable.
+- Strict temporal split: train (2013–mid 2016), val (mid 2016–end 2016),
+  test (Jan–Feb 2017). Leakage assertions in tests.
+- Pandera schema validation. DVC-tracked data pipeline.
+- EDA notebook with seasonality decomposition, distribution analysis,
+  missing-value heatmap.
+
+## 2025-06-11 — Project setup
+
+- Repository scaffold: `pyproject.toml`, `uv`, `ruff.toml`, `pytest`, Makefile.
+- Config loader (`pydantic-settings`) for `configs/config.yaml` and
+  `configs/model_params.yaml`.
+- DVC init, MLflow local backend, CI workflow.

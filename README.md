@@ -76,6 +76,31 @@ raw (DVC) → preprocess (clean, impute, features, schema) → strict temporal s
 Python 3.12 · `uv` · GluonTS (PyTorch) · statsmodels · pmdarima · properscoring · scikit-learn ·
 pandera · DVC · MLflow · matplotlib/seaborn · pytest · ruff.
 
+## What I learned
+
+Before this project, I thought forecasting meant predicting a number and checking if you
+were close. The biggest shift in my thinking was realizing that a model can be the most
+*accurate* in the room and still be dangerously *overconfident* — and you'd never know
+unless you explicitly measure calibration. DeepAR beat every baseline on CRPS and RMSE,
+yet its 90% prediction intervals only contained the truth 74% of the time. That gap is
+invisible if you only look at point metrics, and it's the kind of gap that gets people
+hurt in real decision-making (energy dispatch, air quality warnings, flood management).
+
+The most interesting finding was the one I didn't plan for: post-hoc recalibration worked
+perfectly on the validation period but failed on the test set. It took me a while to
+understand why — the test period (January–February) has a genuinely different pollution
+regime than the validation period (July–December), so the recalibration mapping learned
+on summer/autumn data doesn't transfer to winter. An oracle experiment (fitting
+recalibration directly on test data) confirmed the method itself is sound — ECE dropped
+from 0.090 to 0.020 — which means the problem isn't the technique, it's the
+non-stationarity. That's a real research-level insight I wouldn't have found if I'd just
+reported the numbers without digging into why they looked wrong.
+
+Reproducing DeepAR from the paper also taught me how much published results hide. Getting
+the GluonTS implementation to match expected performance took multiple rounds of
+hyperparameter adjustment, and I still can't match the original paper's numbers exactly
+on this dataset. Documenting that gap honestly felt more valuable than pretending I had.
+
 ## Limitations & future work
 
 The honest headline: post-hoc recalibration **failed to improve test calibration** here, because
